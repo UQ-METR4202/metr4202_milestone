@@ -3,8 +3,9 @@
 JointState joint;
 Pose pose;
 
-void kill();
-void ritual();
+void kill(int help);
+void ritual(void);
+void parse(void);
 void callback(const JointState::ConstPtr msg);
 
 #define MAIN(x) ROS_ERROR("[main]: %s", x)
@@ -39,7 +40,7 @@ void kill(int help)
 }
 
 #define RITUAL(x) ROS_ERROR("[ritual]: %s", x)
-void ritual()
+void ritual(void)
 {
     ros::master::V_TopicInfo topics;
 
@@ -89,6 +90,43 @@ void ritual()
     if (pose.datatype != "geometry_msgs/Pose") {
         RITUAL("Topic error: Expecting " + exTopic);
         kill(1);
+    }
+}
+
+#define PARSE(x) ROS_ERROR("[parse]: %s", x)
+void parse(void)
+{
+    XmlRpc::XmlRpcValue ports, servos;
+
+    try {
+        ros::param::get("~ports", ports);
+
+        if (ports.size() != 1) {
+            PARSE("Port error: Interesting... Do you need more than one port?");
+            PARSE("Port error: Check your controller_config.yaml file");
+            kill(0);
+        }
+    } catch (...) {
+        PARSE("Port error: Caught exception when parsing ports");
+        PARSE("Port error: Check the dynamixel_interface for errors");
+        kill(1);
+    }
+
+    try {
+        servos = ports[0]["servos"];
+
+        if (servos.size() != 4) {
+            PARSE("Servo error: I belive we gave you a 4-DOF robot... Might want to check that");
+            PARSE("Servo error: Check your controller_config.yaml file");
+            kill(0);
+        }
+
+        for (std::size_t i = 0; i < 4; i++) {
+
+
+        }
+    } catch (...) {
+
     }
 }
 
