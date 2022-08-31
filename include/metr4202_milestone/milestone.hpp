@@ -7,27 +7,36 @@
 #include <ros/master.h
 #include <sensor_msgs/JointState.h>
 #include <geometry_msgs/Pose.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 using namespace sensor_msgs;
 using namespace geometry_msgs;
 
-extern JointState joint;
-extern Pose pose;
+struct Servo
+{
+    int min;
+    int max;
+    int zero;
+};
+
+extern JointState g_joint;
+extern Servo g_servos[4];
 
 /**
  * Publishes desired end-effector pose outside of the workspace.
  */
-void check_workspace();
+bool check_workspace(ros::Publisher &pub);
+
+/**
+ * Publishes desired end-effector pose in colliding objects.
+ */
+bool check_collision(ros::Publisher &pub);
+
 
 /**
  * Publishes desired end-effector pose in a circular trajectory.
  */
-void check_kinematic();
-
-/**
- * Publishes desired end-effector pose in invalid taskspace.
- */
-void check_taskspace();
+bool check_kinematic(ros::Publisher &pub);
 
 /**
  * Calculates the forward kinematics of the robot and returns the end-effector pose.

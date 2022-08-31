@@ -1,28 +1,100 @@
 #include "metr4202_milestone/milestone.hpp"
 
-JointState joint;
-Pose pose;
+JointState g_joint;
+Servo g_servos[4];
 
 void kill(int help);
 void ritual(void);
 void parse(void);
 void callback(const JointState::ConstPtr msg);
 
-#define MAIN(x) ROS_ERROR("[main]: %s", x)
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "milestone");
     ros::NodeHandle node;
+    ROS_INFO("Started node handle...");
 
     ritual();
+    ROS_INFO("Completed ritual...");
+
+    parse();
+    ROS_INFO("Parsed controller config...");
 
     ros::Subscriber sub = node.subscribe(DESIRED_JOINT_STATES, 10, callback);
     ros::Publisher pub = node.advertise<Pose>(DESIRED_POSE, 10);
     ros::Rate rate(FREQ);
+    ROS_INFO("Initialised publisher / subscriber...");
 
-    ROS_INFO("Milestone ready");
+    ROS_INFO("=============================================");
+    ROS_INFO("               MILESTONE READY               ");
+    ROS_INFO("=============================================");
+
+    ROS_INFO("Homing to zero configuration");
+    pub.publish(Pose{});
+
+    while ( g_joint.position[0] < -0.1 || g_joint.position[0] > 0.1 ||
+            g_joint.position[1] < -0.1 || g_joint.position[1] > 0.1 ||
+            g_joint.position[2] < -0.1 || g_joint.position[2] > 0.1 ||
+            g_joint.position[3] < -0.1 || g_joint.position[3] > 0.1 ) {
+        if (!node.ok()) {
+            ROS_WARN("Terminating while attempting to home");
+            return 1;
+        }
+        ROS_INFO("...");
+        ros::spinOnce();
+        rate.sleep();
+    }
+    ROS_INFO("Done");
+
+    int task = 0; // 1, 2, 3
+    bool check_complete = true;
 
     while (node.ok()) {
+        if (check_complete) {
+            check_complete = false;
+            switch (task++) {
+                case 0:
+                    ROS_INFO("=============================================");
+                    ROS_INFO("Starting task 1: Checking workspace detection");
+                    ROS_INFO("---------------------------------------------");
+                    break;
+
+                case 1:
+                    ROS_INFO("=============================================");
+                    ROS_INFO("Starting task 2: Checking collision detection");
+                    ROS_INFO("---------------------------------------------");
+                    break;
+
+                case 2:
+                    ROS_INFO("=============================================");
+                    ROS_INFO("Starting task 3: Checking forward kinematics ");
+                    ROS_INFO("---------------------------------------------");
+                    break;
+
+                case 3:
+                    ROS_INFO("=============================================");
+                    ROS_INFO("Milestone complete!");
+                    return 0;
+            }
+        }
+
+        switch (task) {
+            case 1:
+                check_complete = check_workspace(pub);
+                break;
+
+            case 2:
+                check_complete = check_collision(pub);
+                break;
+
+            case 3:
+                check_complete = check_kinematic(pub);
+                break;
+
+            default:
+                ROS_ERROR("Invalid task number!");
+                kill(1);
+        }
 
         ros::spinOnce();
         rate.sleep();
@@ -121,16 +193,43 @@ void parse(void)
             kill(0);
         }
 
-        for (std::size_t i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
+            auto id = std::to_string(i);
 
+            if (servos[i]["min_pos"].getType() != XmlRpc::XmlRpcValue::TypeInt) {
+                PARSE("Servo error: Incorrect type min_pos for id " + id);
+                kill(0);
+            }
+            if (servos[i]["max_pos"].getType() != XmlRpc::XmlRpcValue::TypeInt) {
+                PARSE("Servo error: Incorrect type max_pos for id " + id);
+                kill(0);
+            }
+            if (servos[i]["zero_pos"].getType() != XmlRpc::XmlRpcValue::TypeInt) {
+                PARSE("Servo error: Incorrect type zero_pos for id " + id);
+                kill(0);
+            }
 
+            g_servos[i].min = servos[i]["min_pos"];
+            g_servos[i].max = servos[i]["max_pos"];
+            g_servos[i].zero = servos[i]["zero_pos"];
+            
+            if (g_servos[i].min > g_zeros[i].min) {
+                PARSE("Servo error: min_pos > max_pos for id " + id);
+                kill(0);
+            }
+            if (g_servos[i].zero < g_servos[i].min || g_servos[i].zero > g_servos[i].max) {
+                PARSE("Servo error: zero_pos not between min_pos, max_pos for id " + id);
+                kill(0);
+            }
         }
     } catch (...) {
-
+        PARSE("Servo error: Caught exception when parsing servos");
+        PARSE("Servo error: Check the dynamixel_interface for errors");
+        kill(1);
     }
 }
 
 void callback(const JointState::ConstPtr msg)
 {
-    joint = *msg;
+    g_joint = *msg;
 }
