@@ -1,14 +1,40 @@
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+#ifndef __CONFIG_HPP__
+#define __CONFIG_HPP__
 
-#define L1  0.1
-#define L2  0.1175
-#define L3  0.095
-#define L4  0.1
+/**
+ * The space frame is defined at the base of joint_1, where its orientation is
+ * such that the x-axis points to the front, y-axis to the left, and z-axis to
+ * the top of the robot. The SPACE_FRAME_RPY macro is the roll, pitch, yaw of
+ * this defined space frame to your space frame by applying the respective
+ * rotations in radians. As a recap, RPY corresponds to the rotation about XYZ
+ * in that order. If your space frame is defined in the same way, the array
+ * should be all zero. The relative position of the space frames can be ignored.
+ */
+#define SPACE_FRAME_RPY     { 0, 0, 0 }
 
-#define DESIRED_JOINT_STATES    "/desired_joint_states"
-#define DESIRED_POSE            "/desired_pose"
+/**
+ * If you are using different units to metres for pose position, then adjust
+ * this macro to scale from metres to your position units. E.g., for millimeters
+ * change macro to `1000`. Leave at 1 if metres is used.
+ */
+#define METRE_TO_POS_UNITS  1
 
-#define FREQ                    1
+/**
+ * Topic subscribed by inverse kinematics.
+ * Must be of type `geometry_msgs/Pose`.
+ */
+#define DESIRED_POSE_TOPIC  "/desired_pose"
 
-#endif//CONFIG_HPP
+/**
+ * Topic published by dynamixel interface.
+ * Must be of type `sensor_msgs/JointState`.
+ */
+#define JOINT_STATES_TOPIC  "/joint_states"
+
+/**
+ * For debugging purposes. Set this to 1 if you are having trouble running the
+ * milestone and you want to verify that it can run alone without your stack.
+ */
+#define DRY_RUN             1
+
+#endif//__CONFIG_HPP__
