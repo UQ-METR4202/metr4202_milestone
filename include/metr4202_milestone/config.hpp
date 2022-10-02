@@ -6,7 +6,7 @@
  * such that the x-axis points to the front, y-axis to the left, and z-axis to
  * the top of the robot. The SPACE_FRAME_RPY macro is the roll, pitch, yaw of
  * this defined space frame to your space frame by applying the respective
- * rotations in radians. As a recap, RPY corresponds to the rotation about XYZ
+ * rotations in radians. In thie case, RPY corresponds to the rotation about XYZ
  * in that order. If your space frame is defined in the same way, the array
  * should be all zero. The relative position of the space frames can be ignored.
  */
@@ -30,11 +30,5 @@
  * Must be of type `sensor_msgs/JointState`.
  */
 #define JOINT_STATES_TOPIC  "/joint_states"
-
-/**
- * For debugging purposes.
- * Set this to 1 if you want to run the program standalone.
- */
-#define DRY_RUN             1
 
 #endif//__CONFIG_HPP__

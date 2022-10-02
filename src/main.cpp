@@ -19,37 +19,18 @@ int routine(void)
         return EXIT_FAILURE;
     }
 
-    ros::master::TopicInfo pose{}, joint{};
+    ros::master::TopicInfo joint{};
 
     for (auto &t : topics) {
-
         if (t.name == JOINT_STATES_TOPIC) {
             joint = t;
-        } else
-        if (t.name == DESIRED_POSE_TOPIC) {
-            pose = t;
         }
     }
 
-#if(DRY_RUN == 0)
-    if (pose.name.empty()) {
-        ROS_ERROR("Topic name `%s` does not exist!", DESIRED_POSE_TOPIC);
-        return EXIT_FAILURE;
-    }
-#endif
     if (joint.name.empty()) {
-        ROS_ERROR("Topic name `%s` does not exist!", JOINT_STATES_TOPIC);
+        ROS_ERROR("Topic `%s` does not exist!", JOINT_STATES_TOPIC);
         return EXIT_FAILURE;
     }
-#if(DRY_RUN == 0)
-    if (pose.datatype != "geometry_msgs/Pose") {
-        ROS_ERROR(
-            "Expected message type `geometry_msgs/Pose` for topic `%s`",
-            JOINT_STATES_TOPIC
-        );
-        return EXIT_FAILURE;
-    }
-#endif
     if (joint.datatype != "sensor_msgs/JointState") {
         ROS_ERROR(
             "Expected message type `sensor_msgs/JointState` for topic `%s`",
@@ -66,7 +47,7 @@ const std::string task_to_string(void)
     switch (TASK) {
         // zero configuration
         case Task::homing:
-            ROS_WARN("Undefined homing string!");
+            ROS_ERROR("Undefined homing string!");
             return "";
 
         // workspace test
@@ -75,7 +56,7 @@ const std::string task_to_string(void)
         case Task::task1b:
             return " Task 1b: Invalid pose outside of workspace";
         case Task::task1c:
-            return " Task 1c: Invalid pose due to motor limitation";
+            return " Task 1c: Valid pose outside of motor range";
 
         // inv. kin. test
         case Task::task2a:
@@ -91,13 +72,13 @@ const std::string task_to_string(void)
         case Task::task3b:
             return " Task 3b: Collision with environment";
         case Task::task3c:
-            return " Task 3c: Collision with robot links";
+            return " Task 3c: Collision with its own links";
 
         // complete test
         case Task::complete:
-            return " Test complete!";
+            return " End of test!";
     }
-    ROS_WARN("Undefined control path!");
+    ROS_ERROR("Undefined control path!");
     return "";
 }
 
@@ -207,11 +188,12 @@ int main(int argc, char **argv)
 
         if (COMPLETE) {
 
+            rate.sleep();
+
             const std::string task_msg = task_to_string();
             ROS_INFO("=======================================================");
             ROS_INFO("%s", task_msg.c_str());
-            // ROS_INFO("%s", std::string(task_msg.size(), '-').c_str());
-            ROS_INFO("%s", std::string(56, '-').c_str());
+            ROS_INFO("%s", std::string(55, '-').c_str());
 
             milestone.counter = 0;
 
@@ -224,52 +206,59 @@ int main(int argc, char **argv)
 
                 // workspace test
                 case Task::task1a:
-                    tsk_msg = "[ ---- ]: Expecting to move to desired pose";
+                    HINT("Ensure your inverse kinematics is fully");
+                    HINT("implemented before continuing :)");
                     milestone.set_task1a_pose(pose);
                     break;
                 case Task::task1b:
-                    tsk_msg =
-                        "[ ---- ]: " \
-                        "Expecting to handle inverse kinematics error";
+                    HINT("Pose should cause error in inverse kinematics");
+                    HINT("soltuion if not handled correctly.");
+                    HINT("You should ignore this commanded pose.");
                     milestone.set_task1b_pose(pose);
                     break;
                 case Task::task1c:
-                    tsk_msg = "[ ---- ]: " \
-                        "Expecting to handle motor range limit";
+                    HINT("Dynamixel motors have a range between");
+                    HINT("(-150, 150) degrees. You should either ignore");
+                    HINT("or handle this case. Remember, there is more");
+                    HINT("than one solution.");
                     milestone.set_task1c_pose(pose);
                     break;
 
                 // inv. kin. test
                 case Task::task2a:
-                    tsk_msg = "[ ---- ]: " \
-                        "Expecting to move to starting trajectory point";
-                    milestone.set_task2c_pose(pose);
+                    HINT("The inverse kinematics solution itself is not");
+                    HINT("tested. You need to verify the solution");
+                    HINT("yourself by observing the end-effector is");
+                    HINT("drawing a straight line(ish) in Euclidean");
+                    HINT("space.");
+                    milestone.set_task2a_pose(pose);
                     break;
                 case Task::task2b:
-                    tsk_msg = "[ ---- ]: " \
-                        "Expecting to move to middle trajectory point";
-                    milestone.set_task2c_pose(pose);
+                    HINT("The end-effector should move to the middle.");
+                    milestone.set_task2b_pose(pose);
                     break;
                 case Task::task2c:
-                    tsk_msg = "[ ---- ]: " \
-                        "Expecting to move to end trajectory point";
+                    HINT("The end-effector should move to the end.");
                     milestone.set_task2c_pose(pose);
                     break;
 
                 // collision test
                 case Task::task3a:
-                    tsk_msg = "[ ---- ]: " \
-                        "Expecting to ignore desired pose at ground";
-                    milestone.set_task3c_pose(pose);
+                    HINT("It is unlikely for your planner node to");
+                    HINT("publish a desired pose near the ground,");
+                    HINT("but would you want to risk breaking the");
+                    HINT("manipulator or losing luggage?");
+                    milestone.set_task3a_pose(pose);
                     break;
                 case Task::task3b:
-                    tsk_msg = "[ ---- ]: " \
-                        "Expecting to ignore desired pose at wall";
-                    milestone.set_task3c_pose(pose);
+                    HINT("Keep in mind the physical design of the rig.");
+                    HINT("It may interfere with your trajectory");
+                    HINT("planning.");
+                    milestone.set_task3b_pose(pose);
                     break;
                 case Task::task3c:
-                    tsk_msg = "[ ---- ]: " \
-                        "Expecting to ignore desired pose";
+                    HINT("An easy way to avoid self-collision is to");
+                    HINT("apply soft limits at each joint.");
                     milestone.set_task3c_pose(pose);
                     break;
 
@@ -283,7 +272,6 @@ int main(int argc, char **argv)
             transform_pose(pose);
         }
 
-        ROS_INFO("%s", tsk_msg.c_str());
         pub.publish(pose);
         rate.sleep();
         SYNC = true;

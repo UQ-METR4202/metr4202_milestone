@@ -28,8 +28,9 @@
 #define EXIT_SHUTDOWN   3
 #define EXIT_BAD_TUTOR  4
 
-#define PASS(x)         ROS_INFO("[ PASS ]: %s", x);
-#define FAIL(x)         ROS_WARN("[ FAIL ]: %s", x);
+#define HINT(x)         ROS_INFO("[ HINT ]: %s", x);
+#define PASS(x)         ROS_INFO("[\033[1;32m PASS \033[0m]: %s", x)
+#define FAIL(x)         ROS_INFO("[\033[1;31m FAIL \033[0m]: %s", x)
 
 using namespace geometry_msgs;
 using namespace sensor_msgs;
