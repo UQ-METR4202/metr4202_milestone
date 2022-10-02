@@ -32,8 +32,8 @@
 #define JOINT_STATES_TOPIC  "/joint_states"
 
 /**
- * For debugging purposes. Set this to 1 if you are having trouble running the
- * milestone and you want to verify that it can run alone without your stack.
+ * For debugging purposes.
+ * Set this to 1 if you want to run the program standalone.
  */
 #define DRY_RUN             1
 

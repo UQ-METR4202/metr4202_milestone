@@ -1,11 +1,17 @@
 #ifndef __MILESTONE_HPP__
 #define __MILESTONE_HPP__
 
+/////////////////////////////////
+// Uncomment to enter debug mode.
+// #define DEBUG
+/////////////////////////////////
+
 #include "metr4202_milestone/config.hpp"
 
 #include <cmath>
 #include <cstddef>
 #include <string>
+#include <iostream>
 
 #include <ros/ros.h>
 #include <ros/master.h>
@@ -70,6 +76,8 @@ enum class Task
 };
 
 extern Task TASK;
+
+extern bool SYNC;
 
 extern bool COMPLETE;
 

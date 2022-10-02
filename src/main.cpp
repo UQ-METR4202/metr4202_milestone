@@ -1,6 +1,9 @@
 #include "metr4202_milestone/milestone.hpp"
 
 Task TASK;
+
+bool SYNC;
+
 bool COMPLETE;
 
 int routine(void)
@@ -28,7 +31,7 @@ int routine(void)
         }
     }
 
-#if(DRY_RUN == 1)
+#if(DRY_RUN == 0)
     if (pose.name.empty()) {
         ROS_ERROR("Topic name `%s` does not exist!", DESIRED_POSE_TOPIC);
         return EXIT_FAILURE;
@@ -38,7 +41,7 @@ int routine(void)
         ROS_ERROR("Topic name `%s` does not exist!", JOINT_STATES_TOPIC);
         return EXIT_FAILURE;
     }
-#if(DRY_RUN == 1)
+#if(DRY_RUN == 0)
     if (pose.datatype != "geometry_msgs/Pose") {
         ROS_ERROR(
             "Expected message type `geometry_msgs/Pose` for topic `%s`",
@@ -92,7 +95,7 @@ const std::string task_to_string(void)
 
         // complete test
         case Task::complete:
-            return "Test complete!";
+            return " Test complete!";
     }
     ROS_WARN("Undefined control path!");
     return "";
@@ -173,13 +176,16 @@ int main(int argc, char **argv)
         TASK = Task::homing;
 
         while (TASK == Task::homing) {
-            ROS_INFO("asdf");
+
             if (!ros::ok()) {
                 return EXIT_SHUTDOWN;
             }
+#ifdef DEBUG
+            std::cout << "homing...\n";
+#endif
             pubtmp.publish(msg);
-            // rate.sleep();
-            ros::Duration(1).sleep();
+            rate.sleep();
+            SYNC = true;
             ros::spinOnce();
         }
     }
@@ -218,46 +224,52 @@ int main(int argc, char **argv)
 
                 // workspace test
                 case Task::task1a:
-                    tsk_msg = "[ PROG ]: Expecting to move to desired pose...";
+                    tsk_msg = "[ ---- ]: Expecting to move to desired pose";
                     milestone.set_task1a_pose(pose);
                     break;
                 case Task::task1b:
                     tsk_msg =
-                        "[ PROG ]: " \
-                        "Expecting to handle inverse kinematics error...";
+                        "[ ---- ]: " \
+                        "Expecting to handle inverse kinematics error";
                     milestone.set_task1b_pose(pose);
                     break;
                 case Task::task1c:
-                    tsk_msg = "[ PROG ]: " \
-                        "Expecting to handle motor range limit...";
+                    tsk_msg = "[ ---- ]: " \
+                        "Expecting to handle motor range limit";
                     milestone.set_task1c_pose(pose);
                     break;
 
                 // inv. kin. test
                 case Task::task2a:
-                    tsk_msg = "[ PROG ]: " \
-                        "Expecting to move to starting trajectory point...";
+                    tsk_msg = "[ ---- ]: " \
+                        "Expecting to move to starting trajectory point";
                     milestone.set_task2c_pose(pose);
                     break;
                 case Task::task2b:
-                    tsk_msg = "[ PROG ]: " \
-                        "Expecting to move to middle trajectory point...";
+                    tsk_msg = "[ ---- ]: " \
+                        "Expecting to move to middle trajectory point";
                     milestone.set_task2c_pose(pose);
                     break;
                 case Task::task2c:
-                    tsk_msg = "[ PROG ]: " \
-                        "Expecting to move to end trajectory point...";
+                    tsk_msg = "[ ---- ]: " \
+                        "Expecting to move to end trajectory point";
                     milestone.set_task2c_pose(pose);
                     break;
 
                 // collision test
                 case Task::task3a:
+                    tsk_msg = "[ ---- ]: " \
+                        "Expecting to ignore desired pose at ground";
                     milestone.set_task3c_pose(pose);
                     break;
                 case Task::task3b:
+                    tsk_msg = "[ ---- ]: " \
+                        "Expecting to ignore desired pose at wall";
                     milestone.set_task3c_pose(pose);
                     break;
                 case Task::task3c:
+                    tsk_msg = "[ ---- ]: " \
+                        "Expecting to ignore desired pose";
                     milestone.set_task3c_pose(pose);
                     break;
 
@@ -274,8 +286,9 @@ int main(int argc, char **argv)
         ROS_INFO("%s", tsk_msg.c_str());
         pub.publish(pose);
         rate.sleep();
+        SYNC = true;
         ros::spinOnce();
     }
 
-    return EXIT_BAD_TUTOR;
+    return EXIT_SHUTDOWN;
 }

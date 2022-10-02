@@ -2,8 +2,18 @@
 
 void Milestone::joint_states_callback(const JointState::ConstPtr &msg)
 {
+    if (!SYNC) return;
+
     Task prev_task = TASK;
     bool moving = is_moving(msg->position);
+
+#ifdef DEBUG
+    std::cout << "position=" << msg->position[0] << ','
+                             << msg->position[1] << ','
+                             << msg->position[2] << ','
+                             << msg->position[3] << '\n';
+    std::cout << "is_moving=" << moving << '\n';
+#endif
 
     switch (TASK) {
         // zero configuration
@@ -133,11 +143,11 @@ void Milestone::joint_states_callback(const JointState::ConstPtr &msg)
         case Task::task3c:
             if (moving) {
                 FAIL("Imminent impact!");
-                TASK = Task::task1c;
+                TASK = Task::complete;
             } else
             if (counter > 3) {
                 PASS("Did not smack itself");
-                TASK = Task::task1c;
+                TASK = Task::complete;
             }
             counter++;
             break;
@@ -149,6 +159,7 @@ void Milestone::joint_states_callback(const JointState::ConstPtr &msg)
             break;
     }
     
+    SYNC = false;
     COMPLETE = (prev_task != TASK);
     prev_pos = std::move(msg->position);
 }
@@ -167,7 +178,6 @@ bool Milestone::is_set_to(const std::vector<double> &pos,
 
 bool Milestone::is_moving(const std::vector<double> &pos)
 {
-
     for (std::size_t i = 0; i < N_JOINTS; i++) {
         
         if (std::abs(pos[i] - prev_pos[i]) > MOVE_THRESHOLD) {
