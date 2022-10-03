@@ -6,13 +6,12 @@ KINEMATICS. Students are encouraged to use the program in this package to ensure
 different cases are handled for the METR4202 project. Run the program alongside
 your inverse kinematics node and let the program send commands to it.
 
-**CAUTION:** If collision is not handled, your robot will try to kill itself!
-Be prepared to disable the motors during task 3.
-
 ---
 
-## Requirement
+## Notes
 
+- **CAUTION:** If collision is not handled, the robot will attempt to break itself!!!
+Make sure to terminate the `dynamixel_interface` terminal when task 3 starts (Ctrl+C).
 - Your inverse kinematics node must subscribe to a topic of type
 `geometry_msgs/Pose`.
 - It must not rely on the orienation component of the pose
@@ -61,3 +60,31 @@ roslaunch dynamixel_interface dynamixel_interface_controller.launch
 # Terminal 3
 rosrun metr4202_milestone milestone
 ```
+
+---
+
+## Tasks
+
+### Task 1: Workspace Test
+
+Test the differenct cases of desired pose that are either valid, invalid, or constrained due to the limitation of the motors.
+
+1a) Send a *valid* pose in the workspace.
+1b) Send an *invalid* pose outside of the workspace.
+1c) Send a valid pose in the workspace but with motor constraints.
+
+### Task 2: Inverse Kinematics Test
+
+**Does not verify the inverse kinematics solution.** Observe the simple trajectory generated as a 3 point path.
+
+2a) Send the starting trajectory point.
+2b) Send the middle trajectory point.
+2c) Send the final trajectory point.
+
+### Task 3: Collision Test
+
+Identify the poses that collide with the environment including self-collision at the joint brackets.
+
+3a) Send pose at the ground.
+3b) Send pose at the luggage wall on the rig.
+3c) Send pose inside itself.
