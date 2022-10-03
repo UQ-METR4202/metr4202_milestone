@@ -8,7 +8,7 @@ your inverse kinematics node and let the program send commands to it.
 
 ---
 
-## Notes
+## Important Notes
 
 - **CAUTION:** If collision is not handled, the robot will attempt to break itself!!!
 Make sure to terminate the `dynamixel_interface` terminal when task 3 starts (Ctrl+C).
@@ -16,6 +16,8 @@ Make sure to terminate the `dynamixel_interface` terminal when task 3 starts (Ct
 `geometry_msgs/Pose`.
 - It must not rely on the orienation component of the pose
 (talk to tutors if this is a problem).
+- **Don't take this milestone too seriously.** It does not contribute to course grades
+and depending on how you implement your stack, these test cases may be irrelevant!
 
 ---
 
