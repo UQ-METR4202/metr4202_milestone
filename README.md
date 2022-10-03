@@ -69,22 +69,22 @@ rosrun metr4202_milestone milestone
 
 Test the differenct cases of desired pose that are either valid, invalid, or constrained due to the limitation of the motors.
 
-1a) Send a *valid* pose in the workspace.
-1b) Send an *invalid* pose outside of the workspace.
-1c) Send a valid pose in the workspace but with motor constraints.
+1a) Send a *valid* pose in the workspace.  
+1b) Send an *invalid* pose outside of the workspace.  
+1c) Send a valid pose in the workspace but with motor constraints.  
 
 ### Task 2: Inverse Kinematics Test
 
 **Does not verify the inverse kinematics solution.** Observe the simple trajectory generated as a 3 point path.
 
-2a) Send the starting trajectory point.
-2b) Send the middle trajectory point.
-2c) Send the final trajectory point.
+2a) Send the starting trajectory point.  
+2b) Send the middle trajectory point.  
+2c) Send the final trajectory point.  
 
 ### Task 3: Collision Test
 
 Identify the poses that collide with the environment including self-collision at the joint brackets.
 
-3a) Send pose at the ground.
-3b) Send pose at the luggage wall on the rig.
-3c) Send pose inside itself.
+3a) Send pose at the ground.  
+3b) Send pose at the luggage wall on the rig.  
+3c) Send pose inside itself.  
